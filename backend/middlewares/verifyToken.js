@@ -1,7 +1,11 @@
 import jwt from "jsonwebtoken"
 const verifyToken = async(req,res,next)=>{
     try {
-        const token = req.cookies.token
+        const authHeader = req.headers.authorization
+        const bearerToken = authHeader && authHeader.startsWith("Bearer ")
+            ? authHeader.slice(7)
+            : null
+        const token = bearerToken || req.cookies.token
         if(!token){
             return res.status(400).json({message:"token not found"})
         }
@@ -18,3 +22,5 @@ const verifyToken = async(req,res,next)=>{
         
     }
 }
+
+export default verifyToken

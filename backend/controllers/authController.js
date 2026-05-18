@@ -35,7 +35,17 @@ export const signUp = async(req,res) =>{
             httpOnly:true
         })
 
-        return res.status(200).json(user)
+        return res.status(200).json({
+            message: "User created successfully",
+            token,
+            user: {
+                _id: user._id,
+                fullName: user.fullName,
+                email: user.email,
+                mobile: user.mobile,
+                role: user.role
+            }
+        })
     }
     catch(error){
         return res.status(500).json(error)
@@ -66,7 +76,17 @@ export const signIn = async(req,res) =>{
             httpOnly:true
         })
 
-        return res.status(200).json(user)
+        return res.status(200).json({
+            message: "Signin successful",
+            token,
+            user: {
+                _id: user._id,
+                fullName: user.fullName,
+                email: user.email,
+                mobile: user.mobile,
+                role: user.role
+            }
+        })
     }
     catch(error){
         return res.status(500).json(error)
@@ -79,5 +99,18 @@ export const signOut = async(req,res) =>{
         return res.status(200).json({message:"logout Successfull"})
     } catch (error) {
         return res.status(500).json(error)
+    }
+}
+
+export const checkAuth = async (req, res) => {
+    try {
+        const user = await User.findById(req.userId).select("-password")
+        if (!user) {
+            return res.status(404).json({ message: "User not found" })
+        }
+
+        return res.status(200).json({ authenticated: true, user })
+    } catch (error) {
+        return res.status(500).json({ message: "checkAuth error" })
     }
 }
