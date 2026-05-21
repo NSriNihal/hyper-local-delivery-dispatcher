@@ -1,5 +1,5 @@
 import express from "express"
-import { getCurrentUser } from "../controllers/userControllers"
+import { getCurrentUser } from "../controllers/userControllers.js"
 import verifyToken from "../middlewares/verifyToken.js"
 
 

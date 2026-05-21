@@ -19,7 +19,23 @@ const userSchema = new mongoose.Schema({
     },
     role:{
         type:String,
-        enum:["user","owner","deliveryBoy"]
+        enum:["user","owner","deliveryBoy"],
+        default:"user"
+    },
+    isAvailable:{
+        type:Boolean,
+        default:false 
+    },
+    liveLocation:{
+        latitude:{
+            type:Number
+        },
+        longitude:{
+            type:Number
+        },
+        updatedAt:{
+            type:Date
+        }
     }
 
 },
