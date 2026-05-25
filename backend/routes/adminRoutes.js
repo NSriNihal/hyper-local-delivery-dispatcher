@@ -9,18 +9,18 @@ import {
     deleteUser
 } from "../controllers/adminController.js"
 
-import isAuth from "../middlewares/isAuth.js"
+import { isAdmin } from "../middlewares/isAuth.js"
 
 const adminRouter = express.Router()
 
-adminRouter.get("/stats", isAuth, getAdminStats)
+adminRouter.get("/stats", isAdmin, getAdminStats)
 
-adminRouter.get("/users", isAuth, getAllUsers)
-adminRouter.put("/users/:id/role", isAuth, updateUserRole)
-adminRouter.delete("/users/:id", isAuth, deleteUser)
+adminRouter.get("/users", isAdmin, getAllUsers)
+adminRouter.put("/users/:id/role", isAdmin, updateUserRole)
+adminRouter.delete("/users/:id", isAdmin, deleteUser)
 
-adminRouter.get("/orders", isAuth, getAllOrders)
-adminRouter.get("/stores", isAuth, getAllStores)
-adminRouter.get("/delivery-partners", isAuth, getAllDeliveryPartners)
+adminRouter.get("/orders", isAdmin, getAllOrders)
+adminRouter.get("/stores", isAdmin, getAllStores)
+adminRouter.get("/delivery-partners", isAdmin, getAllDeliveryPartners)
 
 export default adminRouter

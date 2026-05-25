@@ -8,16 +8,16 @@ import {
     getAvailableDeliveryBoys
 } from "../controllers/dispatchController.js"
 
-import isAuth from "../middlewares/isAuth.js"
+import { isAdmin } from "../middlewares/isAuth.js"
 
 const dispatchRouter = express.Router()
 
-dispatchRouter.get("/", isAuth, getAllDispatches)
-dispatchRouter.get("/available-delivery-boys", isAuth, getAvailableDeliveryBoys)
-dispatchRouter.get("/:id", isAuth, getDispatchById)
-dispatchRouter.get("/order/:orderId", isAuth, getDispatchByOrder)
+dispatchRouter.get("/", isAdmin, getAllDispatches)
+dispatchRouter.get("/available-delivery-boys", isAdmin, getAvailableDeliveryBoys)
+dispatchRouter.get("/:id", isAdmin, getDispatchById)
+dispatchRouter.get("/order/:orderId", isAdmin, getDispatchByOrder)
 
-dispatchRouter.post("/assign/:orderId", isAuth, assignDeliveryBoy)
-dispatchRouter.put("/:id/status", isAuth, updateDispatchStatus)
+dispatchRouter.post("/assign/:orderId", isAdmin, assignDeliveryBoy)
+dispatchRouter.put("/:id/status", isAdmin, updateDispatchStatus)
 
 export default dispatchRouter

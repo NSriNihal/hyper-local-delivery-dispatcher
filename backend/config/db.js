@@ -1,14 +1,13 @@
 import {connect} from "mongoose"
 
-const connetDb = async()=>{
-    try{
-        await connect(process.env.DB_URL);
-        console.log("Atlas DB connected")
-    }catch(err){
-        console.log("DB error",err);
-        process.exit(1);
+const connectDb = async()=>{
+    const dbUrl = process.env.DB_URL
+    if (!dbUrl) {
+        throw new Error("DB_URL is missing in environment variables")
     }
-    
+
+    await connect(dbUrl)
+    console.log("Atlas DB connected")
 }
 
-export default connetDb
+export default connectDb
