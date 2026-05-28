@@ -17,7 +17,9 @@ const isAuth = async (req, res, next) => {
     }
     const user = await User.findById(decoded.userId)
     if (!user) return res.status(403).json({ message: "User not found" })
-    req.userId = user._id
+    // Use the decoded userId (string) so comparisons like
+    // product.seller.toString() !== req.userId work as expected
+    req.userId = decoded.userId
     req.userRole = user.role
     next()
   } catch (error) {
@@ -50,7 +52,8 @@ export const isAdmin = async (req, res, next) => {
       return res.status(403).json({ message: "Admin access required" })
     }
 
-    req.userId = user._id
+    // Keep req.userId consistent as a string
+    req.userId = decoded.userId
     req.userRole = user.role
     next()
   } catch (error) {

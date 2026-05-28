@@ -21,12 +21,27 @@ import sellerRouter from "./routes/sellerRoutes.js"
 import storeRouter from "./routes/storeRoutes.js"
 import trackingRouter from "./routes/trackingRoutes.js"
 import deliveryBoyRouter from "./routes/deliveryBoyRoutes.js"
+import uploadRouter from "./routes/uploadRoute.js"
 
 const app = express()  //now we can access express functionalities through app
 const port = process.env.PORT || 5000 //accessing from .env file
+const allowedOrigins = [
+    "http://localhost:5173",
+    "http://localhost:5174",
+    "http://localhost:5175",
+]
+
 app.use(cors({
-    origin:"http://localhost:5173",
-    credentials:true
+    origin: function (origin, callback) {
+        // allow requests with no origin like mobile apps or curl
+        if (!origin) return callback(null, true)
+        if (allowedOrigins.indexOf(origin) !== -1) {
+            callback(null, true)
+        } else {
+            callback(new Error('CORS policy: Origin not allowed'))
+        }
+    },
+    credentials: true
 }))
 app.use(express.json())  //converting data into json
 app.use(cookieParser())
@@ -40,6 +55,10 @@ app.use("/api/seller", sellerRouter)
 app.use("/api/stores", storeRouter)
 app.use("/api/tracking", trackingRouter)
 app.use("/api/delivery-boy", deliveryBoyRouter)
+// expose uploads folder
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')))
+// upload endpoint
+app.use('/api/uploads', uploadRouter)
 
 const startServer = async () => {
     try {
