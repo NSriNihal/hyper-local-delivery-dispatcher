@@ -39,16 +39,18 @@ function Navbar() {
                 {user && (
                     <div className="hidden md:flex items-center gap-6 text-sm font-medium text-gray-700">
                         {user.role === "user" && (
-                            <>
-                                <Link to="/" className="hover:text-emerald-600">
-                                    Stores
-                                </Link>
-                                <Link to="/my-orders" className="hover:text-emerald-600">
-                                    My Orders
-                                </Link>
+                             <>
+                             <Link to="/" className="hover:text-emerald-600">
+                             Stores
+                             </Link>
+                             <Link to="/my-orders" className="hover:text-emerald-600">
+                             My Orders
+                             </Link>
+                             <Link to="/profile" className="hover:text-emerald-600">
+                              Profile
+                            </Link>
                             </>
                         )}
-
                         {user.role === "seller" && (
                             <>
                                 <Link to="/seller/dashboard" className="hover:text-emerald-600">
@@ -63,6 +65,9 @@ function Navbar() {
                                 <Link to="/seller/orders" className="hover:text-emerald-600">
                                     Orders
                                 </Link>
+                                 <Link to="/seller/dispatch" className="hover:text-emerald-600">
+                                    Dispatch
+                                 </Link>
                             </>
                         )}
 
