@@ -1,5 +1,6 @@
 import Store from "../models/storeModel.js"
 import Product from "../models/productModel.js"
+import { normalizeAssetUrl } from "../utils/publicUrl.js"
 
 // Get all open stores
 export const getAllStores = async (req, res) => {
@@ -67,10 +68,16 @@ export const getStoreProducts = async (req, res) => {
             isAvailable: true
         }).sort({ createdAt: -1 })
 
+        const normalizedProducts = products.map((product) => {
+            const productData = product.toObject()
+            productData.image = normalizeAssetUrl(productData.image, req)
+            return productData
+        })
+
         return res.status(200).json({
             store,
-            count: products.length,
-            products
+            count: normalizedProducts.length,
+            products: normalizedProducts
         })
     } catch (error) {
         return res.status(500).json({ message: "getStoreProducts error", error })

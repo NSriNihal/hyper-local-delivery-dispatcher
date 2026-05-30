@@ -2,6 +2,7 @@ import User from "../models/userModel.js"
 import Store from "../models/storeModel.js"
 import Product from "../models/productModel.js"
 import Order from "../models/orderModel.js"
+import { normalizeAssetUrl } from "../utils/publicUrl.js"
 
 // Get seller profile
 export const getSellerProfile = async (req, res) => {
@@ -138,9 +139,15 @@ export const getMyProducts = async (req, res) => {
     try {
         const products = await Product.find({ seller: req.userId }).sort({ createdAt: -1 })
 
+        const normalizedProducts = products.map((product) => {
+            const productData = product.toObject()
+            productData.image = normalizeAssetUrl(productData.image, req)
+            return productData
+        })
+
         return res.status(200).json({
-            count: products.length,
-            products
+            count: normalizedProducts.length,
+            products: normalizedProducts
         })
     } catch (error) {
         return res.status(500).json({ message: "getMyProducts error", error })

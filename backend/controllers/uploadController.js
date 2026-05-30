@@ -1,6 +1,7 @@
 import multer from "multer"
 import path from "path"
 import { fileURLToPath } from "url"
+import { getRequestBaseUrl } from "../utils/publicUrl.js"
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -31,9 +32,8 @@ export const uploadHandler = (req, res) => {
     return res.status(400).json({ message: "No file uploaded" })
   }
 
-  const host = req.get("host")
-  const protocol = req.protocol
-  const url = `${protocol}://${host}/uploads/${req.file.filename}`
+  const baseUrl = getRequestBaseUrl(req)
+  const url = `${baseUrl}/uploads/${req.file.filename}`
 
   return res.status(200).json({ url })
 }

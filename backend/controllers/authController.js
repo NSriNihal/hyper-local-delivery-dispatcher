@@ -1,6 +1,17 @@
 import User from "../models/userModel.js"
 import bcrypt from "bcryptjs"
 import genToken from "../utils/token.js"
+
+const getCookieOptions = () => {
+    const isProduction = process.env.NODE_ENV === "production"
+
+    return {
+        secure: isProduction,
+        sameSite: isProduction ? "none" : "lax",
+        maxAge: 7 * 24 * 60 * 60 * 1000,
+        httpOnly: true
+    }
+}
 //Authntication controllers
 export const signUp = async(req,res) =>{
     try{
@@ -28,12 +39,7 @@ export const signUp = async(req,res) =>{
             password:hashedPassword
         })
         const token = await genToken(user._id)
-        res.cookie("token",token,{
-            secure: false,
-            sameSite: "strict",
-            maxAge:7*24*60*60*1000,
-            httpOnly:true
-        })
+        res.cookie("token", token, getCookieOptions())
 
         return res.status(200).json({
             message: "User created successfully",
@@ -69,12 +75,7 @@ export const signIn = async(req,res) =>{
         
 
         const token = await genToken(user._id)
-        res.cookie("token",token,{
-            secure: false,
-            sameSite: "strict",
-            maxAge:7*24*60*60*1000,
-            httpOnly:true
-        })
+        res.cookie("token", token, getCookieOptions())
 
         return res.status(200).json({
             message: "Signin successful",
@@ -95,7 +96,7 @@ export const signIn = async(req,res) =>{
 
 export const signOut = async(req,res) =>{
     try {
-        res.clearCookie("token")
+        res.clearCookie("token", getCookieOptions())
         return res.status(200).json({message:"logout Successfull"})
     } catch (error) {
         return res.status(500).json(error)

@@ -24,6 +24,7 @@ import deliveryBoyRouter from "./routes/deliveryBoyRoutes.js"
 import uploadRouter from "./routes/uploadRoute.js"
 
 const app = express()  //now we can access express functionalities through app
+app.set("trust proxy", 1)
 const port = process.env.PORT || 5000 //accessing from .env file
 const allowedOrigins = [
     "http://localhost:5173",
