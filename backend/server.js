@@ -29,6 +29,7 @@ const allowedOrigins = [
     "http://localhost:5173",
     "http://localhost:5174",
     "http://localhost:5175",
+    "https://hyper-local-delivery-dispatcher.vercel.app/"
 ]
 
 app.use(cors({
