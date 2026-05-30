@@ -1,13 +1,13 @@
 import { Link, useNavigate } from "react-router-dom"
 import Logo from "./Logo"
+import { useAuth } from "../../context/AuthContext"
 
 function Navbar() {
     const navigate = useNavigate()
-    const user = JSON.parse(localStorage.getItem("user"))
+    const { user, logout } = useAuth()
 
-    const handleLogout = () => {
-        localStorage.removeItem("user")
-        localStorage.removeItem("token")
+    const handleLogout = async () => {
+        await logout()
         navigate("/login")
     }
 

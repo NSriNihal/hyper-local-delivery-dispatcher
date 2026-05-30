@@ -3,10 +3,11 @@ import { Link, useNavigate } from "react-router-dom"
 import MainLayout from "../../layouts/MainLayout"
 import { apiUrl } from "../../api/apiUrl"
 import { resolveCurrentAddress } from "../../utils/location"
+import { useAuth } from "../../context/AuthContext"
 
 function Home() {
     const navigate = useNavigate()
-    const [user, setUser] = useState(null)
+    const { user, token, refreshUser } = useAuth()
     const [stores, setStores] = useState([])
     const [products, setProducts] = useState([])
     const [cart, setCart] = useState({})
@@ -29,22 +30,6 @@ function Home() {
     const [keyword, setKeyword] = useState("")
     const [loading, setLoading] = useState(true)
     const [message, setMessage] = useState("")
-
-    const fetchCurrentUser = async () => {
-        try {
-            const res = await fetch(apiUrl("/user/current"), {
-                credentials: "include"
-            })
-
-            const data = await res.json()
-
-            if (res.ok) {
-                setUser(data)
-            }
-        } catch (error) {
-            setUser(null)
-        }
-    }
 
     const fetchStores = async () => {
         setLoading(true)
@@ -98,7 +83,6 @@ function Home() {
 
     useEffect(() => {
         fetchStores()
-        fetchCurrentUser()
     }, [])
 
     const handleSearch = (e) => {
@@ -188,7 +172,8 @@ function Home() {
             const res = await fetch(apiUrl("/user/address"), {
                 method: "POST",
                 headers: {
-                    "Content-Type": "application/json"
+                    "Content-Type": "application/json",
+                    ...(token ? { Authorization: `Bearer ${token}` } : {})
                 },
                 credentials: "include",
                 body: JSON.stringify({
@@ -224,7 +209,7 @@ function Home() {
                 longitude: ""
             })
             setShowNewAddressForm(false)
-            fetchCurrentUser()
+            await refreshUser()
         } catch (error) {
             setMessage("Server error")
         }

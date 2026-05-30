@@ -3,12 +3,13 @@ import { useParams, useNavigate } from "react-router-dom"
 import MainLayout from "../../layouts/MainLayout"
 import { apiUrl } from "../../api/apiUrl"
 import { resolveCurrentAddress } from "../../utils/location"
+import { useAuth } from "../../context/AuthContext"
 
 function StoreDetails() {
     const { storeId } = useParams()
     const navigate = useNavigate()
+    const { user, token, refreshUser } = useAuth()
 
-    const [user, setUser] = useState(null)
     const [store, setStore] = useState(null)
     const [products, setProducts] = useState([])
     const [cart, setCart] = useState({})
@@ -30,22 +31,6 @@ function StoreDetails() {
         latitude: "",
         longitude: ""
     })
-
-    const fetchCurrentUser = async () => {
-        try {
-            const res = await fetch(apiUrl("/user/current"), {
-                credentials: "include"
-            })
-
-            const data = await res.json()
-
-            if (res.ok) {
-                setUser(data)
-            }
-        } catch (error) {
-            setUser(null)
-        }
-    }
 
     const fetchStoreProducts = async () => {
         try {
@@ -74,8 +59,10 @@ function StoreDetails() {
 
     useEffect(() => {
         fetchStoreProducts()
-        fetchCurrentUser()
-    }, [storeId])
+        if (token) {
+            refreshUser()
+        }
+    }, [storeId, token, refreshUser])
 
     const increaseQty = (product) => {
         setCart({
@@ -179,7 +166,8 @@ function StoreDetails() {
             const res = await fetch(apiUrl("/user/address"), {
                 method: "POST",
                 headers: {
-                    "Content-Type": "application/json"
+                    "Content-Type": "application/json",
+                    ...(token ? { Authorization: `Bearer ${token}` } : {})
                 },
                 credentials: "include",
                 body: JSON.stringify({
@@ -215,7 +203,7 @@ function StoreDetails() {
                 longitude: ""
             })
             setShowNewAddressForm(false)
-            fetchCurrentUser()
+            await refreshUser()
         } catch (error) {
             setMessage("Server error")
         }

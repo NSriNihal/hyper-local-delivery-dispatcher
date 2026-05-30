@@ -2,9 +2,10 @@ import { useEffect, useState } from "react"
 import MainLayout from "../../layouts/MainLayout"
 import { apiUrl } from "../../api/apiUrl"
 import { resolveCurrentAddress } from "../../utils/location"
+import { useAuth } from "../../context/AuthContext"
 
 function Profile() {
-    const [user, setUser] = useState(null)
+    const { user, token, refreshUser } = useAuth()
     const [message, setMessage] = useState("")
     const [locationStatus, setLocationStatus] = useState("")
     const [formData, setFormData] = useState({
@@ -14,21 +15,11 @@ function Profile() {
         longitude: ""
     })
 
-    const fetchUser = async () => {
-        const res = await fetch(apiUrl("/user/current"), {
-            credentials: "include"
-        })
-
-        const data = await res.json()
-
-        if (res.ok) {
-            setUser(data)
-        }
-    }
-
     useEffect(() => {
-        fetchUser()
-    }, [])
+        if (token) {
+            refreshUser()
+        }
+    }, [token, refreshUser])
 
     const handleChange = (e) => {
         setFormData({
@@ -74,7 +65,8 @@ function Profile() {
         const res = await fetch(apiUrl("/user/address"), {
             method: "POST",
             headers: {
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
+                ...(token ? { Authorization: `Bearer ${token}` } : {})
             },
             credentials: "include",
             body: JSON.stringify({
@@ -98,18 +90,21 @@ function Profile() {
             latitude: "",
             longitude: ""
         })
-        fetchUser()
+        await refreshUser()
     }
 
     const deleteAddress = async (addressId) => {
         const res = await fetch(apiUrl(`/user/address/${addressId}`), {
             method: "DELETE",
-            credentials: "include"
+            credentials: "include",
+            headers: {
+                ...(token ? { Authorization: `Bearer ${token}` } : {})
+            }
         })
 
         const data = await res.json()
         setMessage(data.message || "Address deleted")
-        fetchUser()
+        await refreshUser()
     }
 
     return (

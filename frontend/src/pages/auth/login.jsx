@@ -1,11 +1,15 @@
 import { useState } from "react"
+import { useNavigate } from "react-router-dom"
 import Navbar from "../../components/common/Navbar"
 import Logo from "../../components/common/Logo"
 import { apiUrl } from "../../api/apiUrl"
+import { useAuth } from "../../context/AuthContext"
 
 const API_URL = apiUrl("/auth")
 
 function Login() {
+    const navigate = useNavigate()
+    const { login } = useAuth()
     const [isSignUp, setIsSignUp] = useState(false)
     const [loading, setLoading] = useState(false)
     const [message, setMessage] = useState("")
@@ -49,15 +53,14 @@ function Login() {
                 return
             }
 
-            localStorage.setItem("user", JSON.stringify(data.user))
-            localStorage.setItem("token", data.token)
+            login(data.user, data.token)
 
             setMessage(data.message || "Success")
 
-            if (data.user.role === "seller") window.location.href = "/seller/dashboard"
-            else if (data.user.role === "deliveryBoy") window.location.href = "/delivery-boy/dashboard"
-            else if (data.user.role === "admin") window.location.href = "/admin/dashboard"
-            else window.location.href = "/"
+            if (data.user.role === "seller") navigate("/seller/dashboard", { replace: true })
+            else if (data.user.role === "deliveryBoy") navigate("/delivery-boy/dashboard", { replace: true })
+            else if (data.user.role === "admin") navigate("/admin/dashboard", { replace: true })
+            else navigate("/", { replace: true })
         } catch (error) {
             setMessage("Server error. Please try again.")
         } finally {
