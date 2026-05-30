@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react"
 import MainLayout from "../../layouts/MainLayout"
+import { apiUrl } from "../../api/apiUrl"
 
 function SellerDashboard() {
     const [stats, setStats] = useState(null)
@@ -8,7 +9,7 @@ function SellerDashboard() {
 
     const fetchDashboard = async () => {
         try {
-            const res = await fetch(`${import.meta.env.VITE_API_URL}/seller/dashboard`, {
+            const res = await fetch(apiUrl("/seller/dashboard"), {
                 method: "GET",
                 credentials: "include"
             })

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react"
 import MainLayout from "../../layouts/MainLayout"
+import { apiUrl } from "../../api/apiUrl"
 
 const emptyForm = {
     name: "",
@@ -23,7 +24,7 @@ function Products() {
 
     const fetchProducts = async () => {
         try {
-            const res = await fetch(`${import.meta.env.VITE_API_URL}/seller/products`, {
+            const res = await fetch(apiUrl("/seller/products"), {
                 credentials: "include"
             })
 
@@ -78,8 +79,8 @@ function Products() {
 
         try {
             const url = editingId
-                ? `${import.meta.env.VITE_API_URL}/seller/products/${editingId}`
-                : `${import.meta.env.VITE_API_URL}/seller/products`
+                ? apiUrl(`/seller/products/${editingId}`)
+                : apiUrl("/seller/products")
 
             const res = await fetch(url, {
                 method: editingId ? "PUT" : "POST",
@@ -129,7 +130,7 @@ function Products() {
 
         try {
             const res = await fetch(
-                `${import.meta.env.VITE_API_URL}/seller/products/${productId}`,
+                apiUrl(`/seller/products/${productId}`),
                 {
                     method: "DELETE",
                     credentials: "include"
@@ -268,7 +269,7 @@ function Products() {
                                             fd.append("image", file)
 
                                             const res = await fetch(
-                                                `${import.meta.env.VITE_API_URL}/uploads`,
+                                                apiUrl("/uploads"),
                                                 {
                                                     method: "POST",
                                                     credentials: "include",

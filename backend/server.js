@@ -59,6 +59,10 @@ app.use("/api/seller", sellerRouter)
 app.use("/api/stores", storeRouter)
 app.use("/api/tracking", trackingRouter)
 app.use("/api/delivery-boy", deliveryBoyRouter)
+
+// Backward-compatible mounts for clients still calling non-/api paths.
+app.use("/user", userRouter)
+app.use("/stores", storeRouter)
 // expose uploads folder
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')))
 // upload endpoint

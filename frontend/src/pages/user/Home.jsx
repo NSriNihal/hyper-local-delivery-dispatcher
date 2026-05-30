@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import MainLayout from "../../layouts/MainLayout"
+import { apiUrl } from "../../api/apiUrl"
 import { resolveCurrentAddress } from "../../utils/location"
 
 function Home() {
@@ -31,7 +32,7 @@ function Home() {
 
     const fetchCurrentUser = async () => {
         try {
-            const res = await fetch(`${import.meta.env.VITE_API_URL}/user/current`, {
+            const res = await fetch(apiUrl("/user/current"), {
                 credentials: "include"
             })
 
@@ -50,7 +51,7 @@ function Home() {
         setMessage("")
 
         try {
-            const res = await fetch(`${import.meta.env.VITE_API_URL}/stores`, {
+            const res = await fetch(apiUrl("/stores"), {
                 credentials: "include"
             })
 
@@ -75,7 +76,7 @@ function Home() {
     const fetchAllProducts = async (storeList) => {
         try {
             const productRequests = storeList.map((store) =>
-                fetch(`${import.meta.env.VITE_API_URL}/stores/${store._id}/products`, {
+                fetch(apiUrl(`/stores/${store._id}/products`), {
                     credentials: "include"
                 }).then((res) => res.json())
             )
@@ -184,7 +185,7 @@ function Home() {
         e.preventDefault()
 
         try {
-            const res = await fetch(`${import.meta.env.VITE_API_URL}/user/address`, {
+            const res = await fetch(apiUrl("/user/address"), {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
@@ -273,7 +274,7 @@ function Home() {
         }
 
         try {
-            const res = await fetch(`${import.meta.env.VITE_API_URL}/orders`, {
+            const res = await fetch(apiUrl("/orders"), {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"

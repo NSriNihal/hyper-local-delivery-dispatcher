@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react"
 import MainLayout from "../../layouts/MainLayout"
+import { apiUrl } from "../../api/apiUrl"
 import { resolveCurrentAddress } from "../../utils/location"
 
 function Profile() {
@@ -14,7 +15,7 @@ function Profile() {
     })
 
     const fetchUser = async () => {
-        const res = await fetch(`${import.meta.env.VITE_API_URL}/user/current`, {
+        const res = await fetch(apiUrl("/user/current"), {
             credentials: "include"
         })
 
@@ -70,7 +71,7 @@ function Profile() {
         e.preventDefault()
         setMessage("")
 
-        const res = await fetch(`${import.meta.env.VITE_API_URL}/user/address`, {
+        const res = await fetch(apiUrl("/user/address"), {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
@@ -101,7 +102,7 @@ function Profile() {
     }
 
     const deleteAddress = async (addressId) => {
-        const res = await fetch(`${import.meta.env.VITE_API_URL}/user/address/${addressId}`, {
+        const res = await fetch(apiUrl(`/user/address/${addressId}`), {
             method: "DELETE",
             credentials: "include"
         })

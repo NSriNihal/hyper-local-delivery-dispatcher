@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react"
 import { useParams, useNavigate } from "react-router-dom"
 import MainLayout from "../../layouts/MainLayout"
+import { apiUrl } from "../../api/apiUrl"
 import { resolveCurrentAddress } from "../../utils/location"
 
 function StoreDetails() {
@@ -32,7 +33,7 @@ function StoreDetails() {
 
     const fetchCurrentUser = async () => {
         try {
-            const res = await fetch(`${import.meta.env.VITE_API_URL}/user/current`, {
+            const res = await fetch(apiUrl("/user/current"), {
                 credentials: "include"
             })
 
@@ -49,7 +50,7 @@ function StoreDetails() {
     const fetchStoreProducts = async () => {
         try {
             const res = await fetch(
-                `${import.meta.env.VITE_API_URL}/stores/${storeId}/products`,
+                apiUrl(`/stores/${storeId}/products`),
                 {
                     credentials: "include"
                 }
@@ -175,7 +176,7 @@ function StoreDetails() {
         e.preventDefault()
 
         try {
-            const res = await fetch(`${import.meta.env.VITE_API_URL}/user/address`, {
+            const res = await fetch(apiUrl("/user/address"), {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
@@ -263,7 +264,7 @@ function StoreDetails() {
         }
 
         try {
-            const res = await fetch(`${import.meta.env.VITE_API_URL}/orders`, {
+            const res = await fetch(apiUrl("/orders"), {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"

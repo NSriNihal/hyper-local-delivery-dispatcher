@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react"
 import MainLayout from "../../layouts/MainLayout"
+import { apiUrl } from "../../api/apiUrl"
 
 function Earnings() {
     const [earningsData, setEarningsData] = useState(null)
@@ -15,10 +16,10 @@ function Earnings() {
 
         try {
             const [earningsRes, todayRes] = await Promise.all([
-                fetch(`${import.meta.env.VITE_API_URL}/earnings/my`, {
+                fetch(apiUrl("/earnings/my"), {
                     credentials: "include"
                 }),
-                fetch(`${import.meta.env.VITE_API_URL}/earnings/today`, {
+                fetch(apiUrl("/earnings/today"), {
                     credentials: "include"
                 })
             ])

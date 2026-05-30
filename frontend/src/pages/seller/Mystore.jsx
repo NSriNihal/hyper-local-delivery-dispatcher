@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react"
 import MainLayout from "../../layouts/MainLayout"
+import { apiUrl } from "../../api/apiUrl"
 
 function MyStore() {
     const [store, setStore] = useState(null)
@@ -18,7 +19,7 @@ function MyStore() {
 
     const fetchStore = async () => {
         try {
-            const res = await fetch(`${import.meta.env.VITE_API_URL}/seller/store`, {
+            const res = await fetch(apiUrl("/seller/store"), {
                 credentials: "include"
             })
 
@@ -72,7 +73,7 @@ function MyStore() {
         }
 
         try {
-            const res = await fetch(`${import.meta.env.VITE_API_URL}/seller/store`, {
+            const res = await fetch(apiUrl("/seller/store"), {
                 method: store ? "PUT" : "POST",
                 headers: {
                     "Content-Type": "application/json"

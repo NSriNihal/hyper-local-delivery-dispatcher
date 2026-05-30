@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react"
 import MainLayout from "../../layouts/MainLayout"
+import { apiUrl } from "../../api/apiUrl"
 
 const statusStyles = {
     pending: "bg-amber-100 text-amber-700",
@@ -22,7 +23,7 @@ function SellerOrders() {
         }
 
         try {
-            const res = await fetch(`${import.meta.env.VITE_API_URL}/seller/orders`, {
+            const res = await fetch(apiUrl("/seller/orders"), {
                 credentials: "include"
             })
 
@@ -54,7 +55,7 @@ function SellerOrders() {
 
         try {
             const res = await fetch(
-                `${import.meta.env.VITE_API_URL}/orders/${orderId}/${action}`,
+                apiUrl(`/orders/${orderId}/${action}`),
                 {
                     method: "PUT",
                     credentials: "include"

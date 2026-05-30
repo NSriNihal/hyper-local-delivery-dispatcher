@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react"
 import { useParams, Link } from "react-router-dom"
 import MainLayout from "../../layouts/MainLayout"
+import { apiUrl } from "../../api/apiUrl"
 import { resolveCurrentAddress } from "../../utils/location"
 
 const statusStyles = {
@@ -28,10 +29,10 @@ function TrackOrder() {
 
         try {
             const [trackRes, historyRes] = await Promise.all([
-                fetch(`${import.meta.env.VITE_API_URL}/tracking/order/${orderId}`, {
+                fetch(apiUrl(`/tracking/order/${orderId}`), {
                     credentials: "include"
                 }),
-                fetch(`${import.meta.env.VITE_API_URL}/tracking/order/${orderId}/history`, {
+                fetch(apiUrl(`/tracking/order/${orderId}/history`), {
                     credentials: "include"
                 })
             ])

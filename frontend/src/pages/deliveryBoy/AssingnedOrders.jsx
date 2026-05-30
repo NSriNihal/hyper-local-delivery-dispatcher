@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react"
 import MainLayout from "../../layouts/MainLayout"
+import { apiUrl } from "../../api/apiUrl"
 
 const statusStyles = {
     assigned: "bg-purple-100 text-purple-700",
@@ -22,7 +23,7 @@ function AssignedOrders() {
         }
 
         try {
-            const res = await fetch(`${import.meta.env.VITE_API_URL}/delivery-boy/orders`, {
+            const res = await fetch(apiUrl("/delivery-boy/orders"), {
                 credentials: "include"
             })
 
@@ -65,7 +66,7 @@ function AssignedOrders() {
             async (position) => {
                 try {
                     const res = await fetch(
-                        `${import.meta.env.VITE_API_URL}/delivery-boy/location`,
+                        apiUrl("/delivery-boy/location"),
                         {
                             method: "PUT",
                             headers: {
@@ -122,7 +123,7 @@ function AssignedOrders() {
     const updateStatus = async (orderId, status) => {
         try {
             const res = await fetch(
-                `${import.meta.env.VITE_API_URL}/delivery-boy/orders/${orderId}/status`,
+                apiUrl(`/delivery-boy/orders/${orderId}/status`),
                 {
                     method: "PUT",
                     headers: {

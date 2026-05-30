@@ -1,8 +1,9 @@
 import { useState } from "react"
 import Navbar from "../../components/common/Navbar"
 import Logo from "../../components/common/Logo"
+import { apiUrl } from "../../api/apiUrl"
 
-const API_URL = `${import.meta.env.VITE_API_URL}/auth`
+const API_URL = apiUrl("/auth")
 
 function Login() {
     const [isSignUp, setIsSignUp] = useState(false)

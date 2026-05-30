@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react"
 import MainLayout from "../../layouts/MainLayout"
+import { apiUrl } from "../../api/apiUrl"
 
 function DeliveryDashboard() {
     const [profile, setProfile] = useState(null)
@@ -11,10 +12,10 @@ function DeliveryDashboard() {
     const fetchData = async () => {
         try {
             const [profileRes, earningsRes] = await Promise.all([
-                fetch(`${import.meta.env.VITE_API_URL}/delivery-boy/profile`, {
+                fetch(apiUrl("/delivery-boy/profile"), {
                     credentials: "include"
                 }),
-                fetch(`${import.meta.env.VITE_API_URL}/delivery-boy/earnings`, {
+                fetch(apiUrl("/delivery-boy/earnings"), {
                     credentials: "include"
                 })
             ])
@@ -45,7 +46,7 @@ function DeliveryDashboard() {
     const updateAvailability = async (isAvailable) => {
         try {
             const res = await fetch(
-                `${import.meta.env.VITE_API_URL}/delivery-boy/availability`,
+                apiUrl("/delivery-boy/availability"),
                 {
                     method: "PUT",
                     headers: {
@@ -83,7 +84,7 @@ function DeliveryDashboard() {
             async (position) => {
                 try {
                     const res = await fetch(
-                        `${import.meta.env.VITE_API_URL}/delivery-boy/location`,
+                        apiUrl("/delivery-boy/location"),
                         {
                             method: "PUT",
                             headers: {

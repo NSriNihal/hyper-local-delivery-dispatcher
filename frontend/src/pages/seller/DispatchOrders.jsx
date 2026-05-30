@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react"
 import MainLayout from "../../layouts/MainLayout"
+import { apiUrl } from "../../api/apiUrl"
 
 const calculateDistanceInKm = (start, end) => {
     const toRadians = (value) => (value * Math.PI) / 180
@@ -58,10 +59,10 @@ function DispatchOrders() {
 
         try {
             const [ordersRes, boysRes] = await Promise.all([
-                fetch(`${import.meta.env.VITE_API_URL}/seller/orders`, {
+                fetch(apiUrl("/seller/orders"), {
                     credentials: "include"
                 }),
-                fetch(`${import.meta.env.VITE_API_URL}/dispatch/available-delivery-boys`, {
+                fetch(apiUrl("/dispatch/available-delivery-boys"), {
                     credentials: "include"
                 })
             ])
@@ -119,7 +120,7 @@ function DispatchOrders() {
             setAssigningOrderId(orderId)
             setMessage("")
             const res = await fetch(
-                `${import.meta.env.VITE_API_URL}/dispatch/assign/${orderId}`,
+                apiUrl(`/dispatch/assign/${orderId}`),
                 {
                     method: "POST",
                     headers: {
