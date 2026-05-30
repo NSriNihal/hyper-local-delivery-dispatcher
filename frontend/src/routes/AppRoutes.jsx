@@ -1,4 +1,5 @@
 import { Routes, Route, Navigate } from "react-router-dom"
+import { useAuth } from "../context/AuthContext"
 import Login from "../pages/auth/login.jsx"
 import Home from "../pages/user/Home.jsx"
 import SellerDashboard from "../pages/seller/SellerDashboard.jsx"
@@ -14,12 +15,26 @@ import DeliveryDashboard from "../pages/deliveryBoy/DeliveryDashboard.jsx"
 import AssignedOrders from "../pages/deliveryBoy/AssingnedOrders.jsx"
 import Earnings from "../pages/deliveryBoy/Earnings.jsx"
 
+function RootRoute() {
+    const { user, loading } = useAuth()
+
+    if (loading) {
+        return null
+    }
+
+    if (!user) {
+        return <Navigate to="/login" replace />
+    }
+
+    return <Home />
+}
+
 function AppRoutes() {
     return (
         <Routes>
             <Route path="/login" element={<Login />} />
 
-            <Route path="/" element={<Home />} />
+            <Route path="/" element={<RootRoute />} />
 
             <Route path="/seller" element={<Navigate to="/seller/dashboard" replace />} />
             <Route path="/seller/dashboard" element={<SellerDashboard />} />
