@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react"
 import { useParams, Link } from "react-router-dom"
 import MainLayout from "../../layouts/MainLayout"
+import { resolveCurrentAddress } from "../../utils/location"
 
 const statusStyles = {
     pending: "bg-amber-100 text-amber-700",
@@ -17,9 +18,14 @@ function TrackOrder() {
     const [tracking, setTracking] = useState(null)
     const [history, setHistory] = useState([])
     const [loading, setLoading] = useState(true)
+    const [refreshing, setRefreshing] = useState(false)
     const [message, setMessage] = useState("")
 
-    const fetchTracking = async () => {
+    const fetchTracking = async ({ isRefresh = false } = {}) => {
+        if (isRefresh) {
+            setRefreshing(true)
+        }
+
         try {
             const [trackRes, historyRes] = await Promise.all([
                 fetch(`${import.meta.env.VITE_API_URL}/tracking/order/${orderId}`, {
@@ -41,12 +47,34 @@ function TrackOrder() {
             setTracking(trackData)
 
             if (historyRes.ok) {
-                setHistory(historyData.locations || [])
+                const locations = historyData.locations || []
+                const enrichedLocations = await Promise.all(
+                    locations.map(async (location) => {
+                        const place =
+                            location.place ||
+                            location.address ||
+                            (await resolveCurrentAddress({
+                                latitude: location.latitude,
+                                longitude: location.longitude
+                            }))
+
+                        return {
+                            ...location,
+                            place
+                        }
+                    })
+                )
+
+                setHistory(enrichedLocations)
             }
         } catch (error) {
             setMessage("Server error")
         } finally {
-            setLoading(false)
+            if (isRefresh) {
+                setRefreshing(false)
+            } else {
+                setLoading(false)
+            }
         }
     }
 
@@ -76,10 +104,11 @@ function TrackOrder() {
 
                 <div className="flex gap-2">
                     <button
-                        onClick={fetchTracking}
+                        onClick={() => fetchTracking({ isRefresh: true })}
+                        disabled={refreshing}
                         className="bg-gray-900 hover:bg-gray-800 text-white px-4 py-2 rounded-md text-sm font-medium"
                     >
-                        Refresh
+                        {refreshing ? "Refreshing..." : "Refresh"}
                     </button>
 
                     <Link
@@ -180,15 +209,15 @@ function TrackOrder() {
                             )}
 
                             {tracking.liveLocation?.latitude && (
-                                <a
-                                    href={`https://www.google.com/maps?q=${tracking.liveLocation.latitude},${tracking.liveLocation.longitude}`}
-                                    target="_blank"
-                                    rel="noreferrer"
-                                    className="inline-block mt-4 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-md text-sm font-medium"
-                                >
-                                    Open in Google Maps
-                                </a>
-                            )}
+                                <div className="mt-4 overflow-hidden rounded-lg border border-gray-200">
+                                    <iframe
+                                    title="Delivery Boy Live Location"
+                                    src={`https://maps.google.com/maps?q=${tracking.liveLocation.latitude},${tracking.liveLocation.longitude}&z=15&output=embed`}
+                                    className="w-full h-80"
+                                    loading="lazy"
+                                    ></iframe>
+                                    </div>
+                                )}
                         </div>
                     </section>
 
@@ -236,7 +265,7 @@ function TrackOrder() {
                                             className="border-l-2 border-emerald-500 pl-3 text-sm"
                                         >
                                             <p className="font-medium text-gray-900">
-                                                {location.latitude}, {location.longitude}
+                                                {location.place || "Current Location"}
                                             </p>
                                             <p className="text-xs text-gray-500">
                                                 {new Date(location.createdAt).toLocaleString()}

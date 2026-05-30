@@ -24,6 +24,10 @@ const storeSchema = new mongoose.Schema({
         latitude:{
             type:Number,
             required:true
+        },
+        longitude:{
+            type:Number,
+            required:true
         }
     },
     isOpen:{

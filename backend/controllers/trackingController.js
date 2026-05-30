@@ -82,7 +82,9 @@ export const trackOrder = async (req, res) => {
             deliveryAddress: order.deliveryAddress,
             deliveryLocation: order.deliveryLocation,
             deliveryBoy: order.deliveryBoy,
-            liveLocation: order.deliveryBoy.liveLocation
+            liveLocation: order.deliveryBoy.liveLocation,
+            createdAt: order.createdAt,
+            expectedDeliveryAt: new Date(order.createdAt.getTime() + 45 * 60000)
         })
     } catch (error) {
         return res.status(500).json({ message: "trackOrder error", error })

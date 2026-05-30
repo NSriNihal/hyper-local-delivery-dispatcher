@@ -13,9 +13,14 @@ const statusStyles = {
 function SellerOrders() {
     const [orders, setOrders] = useState([])
     const [loading, setLoading] = useState(true)
+    const [refreshing, setRefreshing] = useState(false)
     const [message, setMessage] = useState("")
 
-    const fetchOrders = async () => {
+    const fetchOrders = async ({ isRefresh = false } = {}) => {
+        if (isRefresh) {
+            setRefreshing(true)
+        }
+
         try {
             const res = await fetch(`${import.meta.env.VITE_API_URL}/seller/orders`, {
                 credentials: "include"
@@ -32,7 +37,11 @@ function SellerOrders() {
         } catch (error) {
             setMessage("Server error")
         } finally {
-            setLoading(false)
+            if (isRefresh) {
+                setRefreshing(false)
+            } else {
+                setLoading(false)
+            }
         }
     }
 
@@ -79,10 +88,11 @@ function SellerOrders() {
                 </div>
 
                 <button
-                    onClick={fetchOrders}
+                    onClick={() => fetchOrders({ isRefresh: true })}
+                    disabled={refreshing}
                     className="bg-gray-900 hover:bg-gray-800 text-white px-4 py-2 rounded-md text-sm font-medium"
                 >
-                    Refresh
+                    {refreshing ? "Refreshing..." : "Refresh"}
                 </button>
             </div>
 

@@ -1,15 +1,61 @@
 import { useEffect, useState } from "react"
 import MainLayout from "../../layouts/MainLayout"
 
+const calculateDistanceInKm = (start, end) => {
+    const toRadians = (value) => (value * Math.PI) / 180
+
+    const startLat = Number(start?.latitude)
+    const startLon = Number(start?.longitude)
+    const endLat = Number(end?.latitude)
+    const endLon = Number(end?.longitude)
+
+    if (
+        Number.isNaN(startLat) ||
+        Number.isNaN(startLon) ||
+        Number.isNaN(endLat) ||
+        Number.isNaN(endLon)
+    ) {
+        return 0
+    }
+
+    const earthRadiusKm = 6371
+    const deltaLat = toRadians(endLat - startLat)
+    const deltaLon = toRadians(endLon - startLon)
+    const a =
+        Math.sin(deltaLat / 2) * Math.sin(deltaLat / 2) +
+        Math.cos(toRadians(startLat)) *
+            Math.cos(toRadians(endLat)) *
+            Math.sin(deltaLon / 2) * Math.sin(deltaLon / 2)
+
+    return Number((2 * earthRadiusKm * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))).toFixed(2))
+}
+
+const formatDistance = (distanceInKm) => {
+    if (!Number.isFinite(distanceInKm)) {
+        return "N/A"
+    }
+
+    if (distanceInKm < 1) {
+        return `${Math.round(distanceInKm * 1000)} m`
+    }
+
+    return `${distanceInKm} km`
+}
+
 function DispatchOrders() {
     const [orders, setOrders] = useState([])
     const [deliveryBoys, setDeliveryBoys] = useState([])
     const [selectedBoys, setSelectedBoys] = useState({})
-    const [distanceValues, setDistanceValues] = useState({})
+    const [assigningOrderId, setAssigningOrderId] = useState("")
     const [loading, setLoading] = useState(true)
+    const [refreshing, setRefreshing] = useState(false)
     const [message, setMessage] = useState("")
 
-    const fetchData = async () => {
+    const fetchData = async ({ isRefresh = false } = {}) => {
+        if (isRefresh) {
+            setRefreshing(true)
+        }
+
         try {
             const [ordersRes, boysRes] = await Promise.all([
                 fetch(`${import.meta.env.VITE_API_URL}/seller/orders`, {
@@ -28,18 +74,32 @@ function DispatchOrders() {
                     return order.status === "accepted" || order.status === "assigned"
                 })
 
-                setOrders(dispatchOrders)
+                const ordersWithDistance = dispatchOrders.map((order) => ({
+                    ...order,
+                    calculatedDistanceInKm: calculateDistanceInKm(
+                        order.store?.location,
+                        order.deliveryLocation
+                    )
+                }))
+
+                setOrders(ordersWithDistance)
             } else {
                 setMessage(ordersData.message || "Failed to fetch orders")
             }
 
             if (boysRes.ok) {
                 setDeliveryBoys(boysData.deliveryBoys || [])
+            } else {
+                setMessage(boysData.message || "Failed to fetch delivery boys")
             }
         } catch (error) {
             setMessage("Server error")
         } finally {
-            setLoading(false)
+            if (isRefresh) {
+                setRefreshing(false)
+            } else {
+                setLoading(false)
+            }
         }
     }
 
@@ -49,7 +109,6 @@ function DispatchOrders() {
 
     const handleAssign = async (orderId) => {
         const deliveryBoyId = selectedBoys[orderId]
-        const distanceInKm = distanceValues[orderId] || 0
 
         if (!deliveryBoyId) {
             setMessage("Please select a delivery boy")
@@ -57,6 +116,8 @@ function DispatchOrders() {
         }
 
         try {
+            setAssigningOrderId(orderId)
+            setMessage("")
             const res = await fetch(
                 `${import.meta.env.VITE_API_URL}/dispatch/assign/${orderId}`,
                 {
@@ -66,8 +127,7 @@ function DispatchOrders() {
                     },
                     credentials: "include",
                     body: JSON.stringify({
-                        deliveryBoyId,
-                        distanceInKm: Number(distanceInKm)
+                        deliveryBoyId
                     })
                 }
             )
@@ -83,9 +143,10 @@ function DispatchOrders() {
             fetchData()
         } catch (error) {
             setMessage("Server error")
+        } finally {
+            setAssigningOrderId("")
         }
     }
-
     return (
         <MainLayout>
             <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
@@ -99,10 +160,11 @@ function DispatchOrders() {
                 </div>
 
                 <button
-                    onClick={fetchData}
+                    onClick={() => fetchData({ isRefresh: true })}
+                    disabled={refreshing}
                     className="bg-gray-900 hover:bg-gray-800 text-white px-4 py-2 rounded-md text-sm font-medium"
                 >
-                    Refresh
+                    {refreshing ? "Refreshing..." : "Refresh"}
                 </button>
             </div>
 
@@ -178,26 +240,28 @@ function DispatchOrders() {
                                             ))}
                                         </select>
 
-                                        <input
-                                            type="number"
-                                            min="0"
-                                            step="any"
-                                            value={distanceValues[order._id] || ""}
-                                            onChange={(e) =>
-                                                setDistanceValues({
-                                                    ...distanceValues,
-                                                    [order._id]: e.target.value
-                                                })
-                                            }
-                                            className="w-full border border-gray-300 rounded-md px-3 py-2 outline-none focus:border-emerald-500"
-                                            placeholder="Distance in km"
-                                        />
+                                        {deliveryBoys.length === 0 && (
+                                            <p className="text-xs text-amber-600">
+                                                No available delivery boys right now.
+                                            </p>
+                                        )}
+
+                                        {selectedBoys[order._id] === "" && (
+                                            <p className="text-xs text-gray-500">
+                                                Select a delivery boy to enable assignment.
+                                            </p>
+                                        )}
+
+                                        <div className="w-full rounded-md border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-700">
+                                            Auto distance: {formatDistance(order.calculatedDistanceInKm)}
+                                        </div>
 
                                         <button
                                             onClick={() => handleAssign(order._id)}
-                                            className="w-full bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-md text-sm font-medium"
+                                            disabled={!selectedBoys[order._id] || deliveryBoys.length === 0 || assigningOrderId === order._id}
+                                            className="w-full bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-md text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                                         >
-                                            Assign Delivery Boy
+                                            {assigningOrderId === order._id ? "Assigning..." : "Assign Delivery Boy"}
                                         </button>
                                     </div>
                                 )}

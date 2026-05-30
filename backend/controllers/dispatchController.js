@@ -1,12 +1,47 @@
 import User from "../models/userModel.js"
 import Order from "../models/orderModel.js"
 import Dispatch from "../models/dispatchModel.js"
+import Store from "../models/storeModel.js"
+
+const calculateDistanceInKm = (start, end) => {
+    const toRadians = (value) => (value * Math.PI) / 180
+
+    const startLat = Number(start?.latitude)
+    const startLon = Number(start?.longitude)
+    const endLat = Number(end?.latitude)
+    const endLon = Number(end?.longitude)
+
+    if (
+        Number.isNaN(startLat) ||
+        Number.isNaN(startLon) ||
+        Number.isNaN(endLat) ||
+        Number.isNaN(endLon)
+    ) {
+        return 0
+    }
+
+    const earthRadiusKm = 6371
+    const deltaLat = toRadians(endLat - startLat)
+    const deltaLon = toRadians(endLon - startLon)
+    const a =
+        Math.sin(deltaLat / 2) * Math.sin(deltaLat / 2) +
+        Math.cos(toRadians(startLat)) *
+            Math.cos(toRadians(endLat)) *
+            Math.sin(deltaLon / 2) * Math.sin(deltaLon / 2)
+
+    return Number((2 * earthRadiusKm * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))).toFixed(2))
+}
+
+const normalizeLocation = (location) => ({
+    latitude: Number(location?.latitude) || 0,
+    longitude: Number(location?.longitude) || 0
+})
 
 // Assign delivery boy to an order
 export const assignDeliveryBoy = async (req, res) => {
     try {
         const { orderId } = req.params
-        const { deliveryBoyId, distanceInKm } = req.body
+        const { deliveryBoyId } = req.body
 
         const order = await Order.findById(orderId)
 
@@ -28,6 +63,17 @@ export const assignDeliveryBoy = async (req, res) => {
             return res.status(400).json({ message: "Delivery boy is not available" })
         }
 
+        const store = await Store.findById(order.store)
+
+        if (!order?.deliveryLocation) {
+            return res.status(400).json({ message: "Store or delivery location not available" })
+        }
+
+        const pickupLocation = normalizeLocation(store?.location)
+        const dropLocation = normalizeLocation(order.deliveryLocation)
+
+        const distanceInKm = calculateDistanceInKm(pickupLocation, dropLocation)
+
         order.deliveryBoy = deliveryBoyId
         order.status = "assigned"
         await order.save()
@@ -36,12 +82,9 @@ export const assignDeliveryBoy = async (req, res) => {
             order: order._id,
             seller: order.seller,
             deliveryBoy: deliveryBoyId,
-            pickupLocation: order.storeLocation || {
-                latitude: 0,
-                longitude: 0
-            },
-            dropLocation: order.deliveryLocation,
-            distanceInKm: distanceInKm || 0,
+            pickupLocation,
+            dropLocation,
+            distanceInKm,
             status: "assigned"
         })
 

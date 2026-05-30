@@ -1,21 +1,20 @@
 import { useEffect, useState } from "react"
-import { Link } from "react-router-dom"
 import MainLayout from "../../layouts/MainLayout"
 
 const statusStyles = {
-    pending: "bg-amber-100 text-amber-700",
-    accepted: "bg-blue-100 text-blue-700",
     assigned: "bg-purple-100 text-purple-700",
     dispatched: "bg-indigo-100 text-indigo-700",
     delivered: "bg-emerald-100 text-emerald-700",
     cancelled: "bg-red-100 text-red-700"
 }
 
-function MyOrders() {
+function AssignedOrders() {
     const [orders, setOrders] = useState([])
     const [loading, setLoading] = useState(true)
     const [refreshing, setRefreshing] = useState(false)
     const [message, setMessage] = useState("")
+    const [updatingLocationOrderId, setUpdatingLocationOrderId] = useState("")
+    const [locationStatusByOrder, setLocationStatusByOrder] = useState({})
 
     const fetchOrders = async ({ isRefresh = false } = {}) => {
         if (isRefresh) {
@@ -23,7 +22,7 @@ function MyOrders() {
         }
 
         try {
-            const res = await fetch(`${import.meta.env.VITE_API_URL}/orders/my`, {
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/delivery-boy/orders`, {
                 credentials: "include"
             })
 
@@ -50,28 +49,98 @@ function MyOrders() {
         fetchOrders()
     }, [])
 
-    const cancelOrder = async (orderId) => {
-        const confirmCancel = window.confirm("Cancel this order?")
+    const updateLocationForOrder = (orderId) => {
+        if (!navigator.geolocation) {
+            setMessage("Geolocation is not supported")
+            return
+        }
 
-        if (!confirmCancel) return
+        setUpdatingLocationOrderId(orderId)
+        setLocationStatusByOrder((current) => ({
+            ...current,
+            [orderId]: "Detecting current location..."
+        }))
 
+        navigator.geolocation.getCurrentPosition(
+            async (position) => {
+                try {
+                    const res = await fetch(
+                        `${import.meta.env.VITE_API_URL}/delivery-boy/location`,
+                        {
+                            method: "PUT",
+                            headers: {
+                                "Content-Type": "application/json"
+                            },
+                            credentials: "include",
+                            body: JSON.stringify({
+                                latitude: position.coords.latitude,
+                                longitude: position.coords.longitude,
+                                orderId
+                            })
+                        }
+                    )
+
+                    const data = await res.json()
+
+                    if (!res.ok) {
+                        setLocationStatusByOrder((current) => ({
+                            ...current,
+                            [orderId]: data.message || "Failed to update location"
+                        }))
+                        setMessage(data.message || "Failed to update location")
+                        return
+                    }
+
+                    const updatedMessage = data.message || "Location updated"
+                    setMessage(updatedMessage)
+                    setLocationStatusByOrder((current) => ({
+                        ...current,
+                        [orderId]: `${updatedMessage} at ${new Date().toLocaleTimeString()}`
+                    }))
+                    fetchOrders()
+                } catch (error) {
+                    setMessage("Server error")
+                    setLocationStatusByOrder((current) => ({
+                        ...current,
+                        [orderId]: "Server error"
+                    }))
+                } finally {
+                    setUpdatingLocationOrderId("")
+                }
+            },
+            () => {
+                setMessage("Unable to detect location")
+                setLocationStatusByOrder((current) => ({
+                    ...current,
+                    [orderId]: "Unable to detect location"
+                }))
+                setUpdatingLocationOrderId("")
+            }
+        )
+    }
+
+    const updateStatus = async (orderId, status) => {
         try {
             const res = await fetch(
-                `${import.meta.env.VITE_API_URL}/orders/${orderId}/cancel`,
+                `${import.meta.env.VITE_API_URL}/delivery-boy/orders/${orderId}/status`,
                 {
                     method: "PUT",
-                    credentials: "include"
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    credentials: "include",
+                    body: JSON.stringify({ status })
                 }
             )
 
             const data = await res.json()
 
             if (!res.ok) {
-                setMessage(data.message || "Failed to cancel order")
+                setMessage(data.message || "Failed to update order status")
                 return
             }
 
-            setMessage(data.message || "Order cancelled")
+            setMessage(data.message || "Order status updated")
             fetchOrders()
         } catch (error) {
             setMessage("Server error")
@@ -83,10 +152,10 @@ function MyOrders() {
             <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 <div>
                     <h1 className="text-2xl font-semibold text-gray-900">
-                        My Orders
+                        Assigned Orders
                     </h1>
                     <p className="text-gray-500 mt-1">
-                        Track and manage your recent orders.
+                        Update delivery status and live location.
                     </p>
                 </div>
 
@@ -106,10 +175,10 @@ function MyOrders() {
             )}
 
             {loading ? (
-                <p className="text-gray-600">Loading orders...</p>
+                <p className="text-gray-600">Loading assigned orders...</p>
             ) : orders.length === 0 ? (
                 <div className="bg-white border border-gray-200 rounded-lg p-6 text-gray-500">
-                    No orders found.
+                    No assigned orders.
                 </div>
             ) : (
                 <div className="space-y-4">
@@ -136,19 +205,21 @@ function MyOrders() {
                                     </div>
 
                                     <p className="text-sm text-gray-500 mt-1">
+                                        Customer: {order.user?.fullName || "N/A"} ·{" "}
+                                        {order.user?.mobile || "No mobile"}
+                                    </p>
+
+                                    <p className="text-sm text-gray-500 mt-1">
                                         Store: {order.store?.name || "N/A"}
                                     </p>
 
                                     <p className="text-sm text-gray-500 mt-1">
-                                        Address: {order.deliveryAddress}
+                                        Pickup: {order.store?.address || "N/A"}
                                     </p>
 
-                                    {order.deliveryBoy && (
-                                        <p className="text-sm text-emerald-600 mt-1">
-                                            Delivery Boy: {order.deliveryBoy.fullName} ·{" "}
-                                            {order.deliveryBoy.mobile}
-                                        </p>
-                                    )}
+                                    <p className="text-sm text-gray-500 mt-1">
+                                        Drop: {order.deliveryAddress}
+                                    </p>
                                 </div>
 
                                 <div className="text-left lg:text-right">
@@ -156,7 +227,7 @@ function MyOrders() {
                                         ₹{order.totalAmount}
                                     </p>
                                     <p className="text-sm text-gray-500">
-                                        Delivery: ₹{order.deliveryCharge || 0}
+                                        Delivery Earn: ₹{order.deliveryCharge || 0}
                                     </p>
                                 </div>
                             </div>
@@ -184,22 +255,43 @@ function MyOrders() {
                             </div>
 
                             <div className="mt-4 flex flex-wrap gap-2">
-                                {["pending", "accepted"].includes(order.status) && (
+                                {order.status !== "delivered" &&
+                                    order.status !== "cancelled" && (
+                                        <div className="space-y-1">
+                                            <button
+                                                onClick={() => updateLocationForOrder(order._id)}
+                                                disabled={updatingLocationOrderId === order._id}
+                                                className="bg-gray-900 hover:bg-gray-800 text-white px-4 py-2 rounded-md text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                                            >
+                                                {updatingLocationOrderId === order._id
+                                                    ? "Updating..."
+                                                    : "Update Location"}
+                                            </button>
+
+                                            {locationStatusByOrder[order._id] && (
+                                                <p className="text-xs text-gray-600">
+                                                    {locationStatusByOrder[order._id]}
+                                                </p>
+                                            )}
+                                        </div>
+                                    )}
+
+                                {order.status === "assigned" && (
                                     <button
-                                        onClick={() => cancelOrder(order._id)}
-                                        className="bg-red-50 hover:bg-red-100 text-red-600 px-4 py-2 rounded-md text-sm font-medium"
+                                        onClick={() => updateStatus(order._id, "dispatched")}
+                                        className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md text-sm font-medium"
                                     >
-                                        Cancel Order
+                                        Mark Dispatched
                                     </button>
                                 )}
 
-                                {["assigned", "dispatched"].includes(order.status) && (
-                                    <Link
-                                        to={`/track/${order._id}`}
+                                {order.status === "dispatched" && (
+                                    <button
+                                        onClick={() => updateStatus(order._id, "delivered")}
                                         className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-md text-sm font-medium"
                                     >
-                                        Track Order
-                                    </Link>
+                                        Mark Delivered
+                                    </button>
                                 )}
                             </div>
                         </div>
@@ -210,4 +302,4 @@ function MyOrders() {
     )
 }
 
-export default MyOrders
+export default AssignedOrders
