@@ -33,14 +33,25 @@ const allowedOrigins = [
     "https://hyper-local-delivery-dispatcher.vercel.app"
 ]
 
+const isAllowedOrigin = (origin) => {
+    const normalizedOrigin = origin.replace(/\/$/, "")
+
+    if (allowedOrigins.includes(normalizedOrigin)) {
+        return true
+    }
+
+    return (
+        normalizedOrigin.endsWith(".vercel.app") &&
+        normalizedOrigin.includes("hyper-local-delivery-dispatcher")
+    )
+}
+
 app.use(cors({
     origin: function (origin, callback) {
         // allow requests with no origin like mobile apps or curl
         if (!origin) return callback(null, true)
 
-        // Normalize trailing slash differences between environments.
-        const normalizedOrigin = origin.replace(/\/$/, "")
-        if (allowedOrigins.includes(normalizedOrigin)) {
+        if (isAllowedOrigin(origin)) {
             callback(null, true)
         } else {
             callback(new Error('CORS policy: Origin not allowed'))
