@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import Navbar from "../../components/common/Navbar"
 import Logo from "../../components/common/Logo"
@@ -9,7 +9,7 @@ const API_URL = apiUrl("/auth")
 
 function Login() {
     const navigate = useNavigate()
-    const { login, user, loading: authLoading } = useAuth()
+    const { login } = useAuth()
     const [isSignUp, setIsSignUp] = useState(false)
     const [loading, setLoading] = useState(false)
     const [message, setMessage] = useState("")
@@ -26,29 +26,6 @@ function Login() {
         const { name, value } = e.target
         setFormData({ ...formData, [name]: value })
     }
-
-    useEffect(() => {
-        if (authLoading || !user) {
-            return
-        }
-
-        if (user.role === "seller") {
-            navigate("/seller/dashboard", { replace: true })
-            return
-        }
-
-        if (user.role === "deliveryBoy") {
-            navigate("/delivery-boy/dashboard", { replace: true })
-            return
-        }
-
-        if (user.role === "admin") {
-            navigate("/admin/dashboard", { replace: true })
-            return
-        }
-
-        navigate("/", { replace: true })
-    }, [authLoading, navigate, user])
 
     const handleSubmit = async (e) => {
         e.preventDefault()
