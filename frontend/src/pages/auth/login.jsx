@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import Navbar from "../../components/common/Navbar"
 import Logo from "../../components/common/Logo"
@@ -10,6 +10,7 @@ const API_URL = apiUrl("/auth")
 function Login() {
     const navigate = useNavigate()
     const { login } = useAuth()
+
     const [isSignUp, setIsSignUp] = useState(false)
     const [loading, setLoading] = useState(false)
     const [message, setMessage] = useState("")
@@ -21,6 +22,15 @@ function Login() {
         mobile: "",
         role: "user"
     })
+
+    useEffect(() => {
+        localStorage.removeItem("user")
+        localStorage.removeItem("token")
+
+        fetch(`${API_URL}/signout`, {
+            credentials: "include"
+        }).catch(() => {})
+    }, [])
 
     const handleChange = (e) => {
         const { name, value } = e.target
@@ -37,7 +47,10 @@ function Login() {
 
             const body = isSignUp
                 ? formData
-                : { email: formData.email, password: formData.password }
+                : {
+                    email: formData.email,
+                    password: formData.password
+                }
 
             const res = await fetch(endpoint, {
                 method: "POST",
@@ -55,12 +68,15 @@ function Login() {
 
             login(data.user, data.token)
 
-            setMessage(data.message || "Success")
-
-            if (data.user.role === "seller") navigate("/seller/dashboard", { replace: true })
-            else if (data.user.role === "deliveryBoy") navigate("/delivery-boy/dashboard", { replace: true })
-            else if (data.user.role === "admin") navigate("/admin/dashboard", { replace: true })
-            else navigate("/", { replace: true })
+            if (data.user.role === "seller") {
+                navigate("/seller/dashboard", { replace: true })
+            } else if (data.user.role === "deliveryBoy") {
+                navigate("/delivery-boy/dashboard", { replace: true })
+            } else if (data.user.role === "admin") {
+                navigate("/admin/dashboard", { replace: true })
+            } else {
+                navigate("/home", { replace: true })
+            }
         } catch (error) {
             setMessage("Server error. Please try again.")
         } finally {
@@ -85,8 +101,12 @@ function Login() {
                             </div>
                         </div>
 
-                        <h3 className="text-xl font-semibold mb-2">{isSignUp ? "Create your account" : "Welcome back"}</h3>
-                        <p className="text-sm opacity-90">Fast, reliable hyper-local deliveries. Sign in to manage stores, products and orders.</p>
+                        <h3 className="text-xl font-semibold mb-2">
+                            {isSignUp ? "Create your account" : "Welcome back"}
+                        </h3>
+                        <p className="text-sm opacity-90">
+                            Fast, reliable hyper-local deliveries. Sign in to manage stores, products and orders.
+                        </p>
                     </div>
 
                     <div className="w-full bg-white border border-gray-200 rounded-lg p-8 shadow">
@@ -94,22 +114,32 @@ function Login() {
                             <div className="mx-auto">
                                 <Logo />
                             </div>
-                            <h1 className="text-2xl font-semibold mt-3 text-gray-900">{isSignUp ? "Create account" : "Welcome back"}</h1>
-                            <p className="text-sm text-gray-500 mt-1">Hyper-local delivery dispatcher</p>
+                            <h1 className="text-2xl font-semibold mt-3 text-gray-900">
+                                {isSignUp ? "Create account" : "Welcome back"}
+                            </h1>
+                            <p className="text-sm text-gray-500 mt-1">
+                                Hyper-local delivery dispatcher
+                            </p>
                         </div>
 
                         <div className="grid grid-cols-2 bg-zinc-100 rounded-md p-1 mb-6">
                             <button
                                 type="button"
                                 onClick={() => setIsSignUp(false)}
-                                className={`py-2 rounded-md text-sm font-medium ${!isSignUp ? "bg-white text-zinc-900" : "text-gray-500"}`}>
+                                className={`py-2 rounded-md text-sm font-medium ${
+                                    !isSignUp ? "bg-white text-zinc-900" : "text-gray-500"
+                                }`}
+                            >
                                 Sign In
                             </button>
 
                             <button
                                 type="button"
                                 onClick={() => setIsSignUp(true)}
-                                className={`py-2 rounded-md text-sm font-medium ${isSignUp ? "bg-white text-zinc-900" : "text-gray-500"}`}>
+                                className={`py-2 rounded-md text-sm font-medium ${
+                                    isSignUp ? "bg-white text-zinc-900" : "text-gray-500"
+                                }`}
+                            >
                                 Sign Up
                             </button>
                         </div>
@@ -117,7 +147,9 @@ function Login() {
                         <form onSubmit={handleSubmit} className="space-y-4">
                             {isSignUp && (
                                 <div>
-                                    <label className="block text-sm mb-1 text-gray-700">Full Name</label>
+                                    <label className="block text-sm mb-1 text-gray-700">
+                                        Full Name
+                                    </label>
                                     <input
                                         type="text"
                                         name="fullName"
@@ -131,7 +163,9 @@ function Login() {
                             )}
 
                             <div>
-                                <label className="block text-sm mb-1 text-gray-700">Email</label>
+                                <label className="block text-sm mb-1 text-gray-700">
+                                    Email
+                                </label>
                                 <input
                                     type="email"
                                     name="email"
@@ -145,7 +179,9 @@ function Login() {
 
                             {isSignUp && (
                                 <div>
-                                    <label className="block text-sm mb-1 text-gray-700">Mobile</label>
+                                    <label className="block text-sm mb-1 text-gray-700">
+                                        Mobile
+                                    </label>
                                     <input
                                         type="text"
                                         name="mobile"
@@ -159,7 +195,9 @@ function Login() {
                             )}
 
                             <div>
-                                <label className="block text-sm mb-1 text-gray-700">Password</label>
+                                <label className="block text-sm mb-1 text-gray-700">
+                                    Password
+                                </label>
                                 <input
                                     type="password"
                                     name="password"
@@ -173,7 +211,9 @@ function Login() {
 
                             {isSignUp && (
                                 <div>
-                                    <label className="block text-sm mb-2 text-gray-700">Select Role</label>
+                                    <label className="block text-sm mb-2 text-gray-700">
+                                        Select Role
+                                    </label>
 
                                     <div className="grid grid-cols-3 gap-2">
                                         {[
@@ -184,8 +224,18 @@ function Login() {
                                             <button
                                                 key={role.value}
                                                 type="button"
-                                                onClick={() => setFormData({ ...formData, role: role.value })}
-                                                className={`py-2 rounded-md border text-sm ${formData.role === role.value ? "bg-emerald-500 border-emerald-500 text-white font-semibold" : "bg-white border-gray-200 text-gray-700"}`}>
+                                                onClick={() =>
+                                                    setFormData({
+                                                        ...formData,
+                                                        role: role.value
+                                                    })
+                                                }
+                                                className={`py-2 rounded-md border text-sm ${
+                                                    formData.role === role.value
+                                                        ? "bg-emerald-500 border-emerald-500 text-white font-semibold"
+                                                        : "bg-white border-gray-200 text-gray-700"
+                                                }`}
+                                            >
                                                 {role.label}
                                             </button>
                                         ))}
@@ -193,7 +243,11 @@ function Login() {
                                 </div>
                             )}
 
-                            {message && <p className="text-sm text-amber-500">{message}</p>}
+                            {message && (
+                                <p className="text-sm text-amber-500">
+                                    {message}
+                                </p>
+                            )}
 
                             <button
                                 type="submit"

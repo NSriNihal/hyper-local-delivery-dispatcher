@@ -18,56 +18,63 @@ function Navbar() {
         if (user.role === "deliveryBoy") return "/delivery-boy/dashboard"
         if (user.role === "admin") return "/admin/dashboard"
 
-        return "/"
+        return "/home"
     }
 
     return (
         <nav className="sticky top-0 z-50 bg-white border-b border-gray-200">
             <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
-                    <Link to={getDashboardLink()} className="flex items-center gap-2">
-                        <Logo />
-                        <div>
-                            <h1 className="text-lg font-semibold text-gray-900">
-                                HyperDispatch
-                            </h1>
-                            <p className="text-xs text-gray-500">
-                                Local delivery manager
-                            </p>
-                        </div>
-                    </Link>
+                <Link to={getDashboardLink()} className="flex items-center gap-2">
+                    <Logo />
+                    <div>
+                        <h1 className="text-lg font-semibold text-gray-900">
+                            HyperDispatch
+                        </h1>
+                        <p className="text-xs text-gray-500">
+                            Local delivery manager
+                        </p>
+                    </div>
+                </Link>
 
                 {user && (
                     <div className="hidden md:flex items-center gap-6 text-sm font-medium text-gray-700">
                         {user.role === "user" && (
-                             <>
-                             <Link to="/" className="hover:text-emerald-600">
-                             Stores
-                             </Link>
-                             <Link to="/my-orders" className="hover:text-emerald-600">
-                             My Orders
-                             </Link>
-                             <Link to="/profile" className="hover:text-emerald-600">
-                              Profile
-                            </Link>
+                            <>
+                                <Link to="/home" className="hover:text-emerald-600">
+                                    Stores
+                                </Link>
+
+                                <Link to="/my-orders" className="hover:text-emerald-600">
+                                    My Orders
+                                </Link>
+
+                                <Link to="/profile" className="hover:text-emerald-600">
+                                    Profile
+                                </Link>
                             </>
                         )}
+
                         {user.role === "seller" && (
                             <>
                                 <Link to="/seller/dashboard" className="hover:text-emerald-600">
                                     Dashboard
                                 </Link>
+
                                 <Link to="/seller/store" className="hover:text-emerald-600">
                                     Store
                                 </Link>
+
                                 <Link to="/seller/products" className="hover:text-emerald-600">
                                     Products
                                 </Link>
+
                                 <Link to="/seller/orders" className="hover:text-emerald-600">
                                     Orders
                                 </Link>
-                                 <Link to="/seller/dispatch" className="hover:text-emerald-600">
+
+                                <Link to="/seller/dispatch" className="hover:text-emerald-600">
                                     Dispatch
-                                 </Link>
+                                </Link>
                             </>
                         )}
 
@@ -76,9 +83,11 @@ function Navbar() {
                                 <Link to="/delivery-boy/dashboard" className="hover:text-emerald-600">
                                     Dashboard
                                 </Link>
+
                                 <Link to="/delivery-boy/orders" className="hover:text-emerald-600">
                                     Assigned Orders
                                 </Link>
+
                                 <Link to="/delivery-boy/earnings" className="hover:text-emerald-600">
                                     Earnings
                                 </Link>
@@ -90,12 +99,15 @@ function Navbar() {
                                 <Link to="/admin/dashboard" className="hover:text-emerald-600">
                                     Dashboard
                                 </Link>
+
                                 <Link to="/admin/users" className="hover:text-emerald-600">
                                     Users
                                 </Link>
+
                                 <Link to="/admin/orders" className="hover:text-emerald-600">
                                     Orders
                                 </Link>
+
                                 <Link to="/admin/stores" className="hover:text-emerald-600">
                                     Stores
                                 </Link>
@@ -123,7 +135,14 @@ function Navbar() {
                                 Logout
                             </button>
                         </>
-                    ) : null}
+                    ) : (
+                        <Link
+                            to="/login"
+                            className="px-4 py-2 rounded-md bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700"
+                        >
+                            Login
+                        </Link>
+                    )}
                 </div>
             </div>
         </nav>
