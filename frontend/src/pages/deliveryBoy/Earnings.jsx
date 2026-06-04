@@ -110,7 +110,7 @@ function Earnings() {
                 </div>
 
                 <div className="bg-white border border-gray-200 rounded-lg p-5">
-                    <p className="text-sm text-gray-500">Pending</p>
+                    <p className="text-sm text-gray-500">Received</p>
                     <h2 className="text-2xl font-semibold mt-2 text-amber-600">
                         ₹{earningsData?.pendingEarnings || 0}
                     </h2>
@@ -167,7 +167,7 @@ function Earnings() {
                                                         : "bg-amber-100 text-amber-700"
                                                 }`}
                                             >
-                                                {earning.status}
+                                                {earning.status === "pending" ? "Received" : earning.status}
                                             </span>
                                         </td>
 
