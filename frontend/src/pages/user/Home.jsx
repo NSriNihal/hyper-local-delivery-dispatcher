@@ -229,53 +229,58 @@ function Home() {
             return
         }
 
-        const storeIds = [...new Set(cartItems.map((item) => item.store?._id).filter(Boolean))]
-
-        if (storeIds.length !== 1) {
-            setMessage("Please place orders from one store at a time")
-            return
-        }
+        // Allow ordering from multiple stores by grouping items per store
+        const groups = cartItems.reduce((acc, item) => {
+            const id = item.store?._id || ""
+            if (!acc[id]) acc[id] = []
+            acc[id].push(item)
+            return acc
+        }, {})
 
         setPlacingOrder(true)
 
-        const storeId = storeIds[0]
-        const deliveryCharge = cartItems.length > 0 ? 40 : 0
-        const totalAmount = itemsTotal + deliveryCharge
-
-        const payload = {
-            storeId,
-            items: cartItems.map((item) => ({
-                name: item.name,
-                quantity: item.quantity,
-                price: item.price
-            })),
-            deliveryAddress: deliveryData.deliveryAddress,
-            deliveryLocation: {
-                latitude: Number(deliveryData.latitude),
-                longitude: Number(deliveryData.longitude)
-            },
-            totalAmount,
-            deliveryCharge
-        }
-
         try {
-            const res = await fetch(apiUrl("/orders"), {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                credentials: "include",
-                body: JSON.stringify(payload)
-            })
+            for (const [storeId, items] of Object.entries(groups)) {
+                const itemsTotalForStore = items.reduce((t, it) => t + it.price * it.quantity, 0)
+                const deliveryChargeForStore = items.length > 0 ? 25 : 0
+                const totalAmountForStore = itemsTotalForStore + deliveryChargeForStore
 
-            const data = await res.json()
+                const payload = {
+                    storeId,
+                    items: items.map((item) => ({
+                        name: item.name,
+                        quantity: item.quantity,
+                        price: item.price
+                    })),
+                    deliveryAddress: deliveryData.deliveryAddress,
+                    deliveryLocation: {
+                        latitude: Number(deliveryData.latitude),
+                        longitude: Number(deliveryData.longitude)
+                    },
+                    totalAmount: totalAmountForStore,
+                    deliveryCharge: deliveryChargeForStore
+                }
 
-            if (!res.ok) {
-                setMessage(data.message || "Failed to place order")
-                return
+                const res = await fetch(apiUrl("/orders"), {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        ...(token ? { Authorization: `Bearer ${token}` } : {})
+                    },
+                    credentials: "include",
+                    body: JSON.stringify(payload)
+                })
+
+                const data = await res.json()
+
+                if (!res.ok) {
+                    setMessage(data.message || "Failed to place one of the orders")
+                    setPlacingOrder(false)
+                    return
+                }
             }
 
-            setMessage("Order placed successfully")
+            setMessage("Orders placed successfully")
             setCart({})
             setAddressSelected(false)
             setDeliveryData({

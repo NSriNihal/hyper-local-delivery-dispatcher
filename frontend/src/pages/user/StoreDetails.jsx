@@ -255,7 +255,8 @@ function StoreDetails() {
             const res = await fetch(apiUrl("/orders"), {
                 method: "POST",
                 headers: {
-                    "Content-Type": "application/json"
+                    "Content-Type": "application/json",
+                    ...(token ? { Authorization: `Bearer ${token}` } : {})
                 },
                 credentials: "include",
                 body: JSON.stringify(payload)
