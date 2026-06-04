@@ -2,6 +2,60 @@ import { apiUrl } from "./apiUrl"
 
 const USER_STORAGE_KEY = "user"
 const TOKEN_STORAGE_KEY = "token"
+const AUTH_GUARD_FLAG = "__hyperdispatchAuthGuardInstalled"
+
+const AUTH_ERROR_PATTERNS = [
+    /token not found/i,
+    /token not verified/i,
+    /token expired/i,
+    /jwt expired/i,
+    /verifytoken error/i,
+    /isauth error/i
+]
+
+const isAuthFailureMessage = (message) => {
+    if (!message || typeof message !== "string") {
+        return false
+    }
+
+    return AUTH_ERROR_PATTERNS.some((pattern) => pattern.test(message))
+}
+
+const redirectToLogin = () => {
+    clearAuthSession()
+
+    if (typeof window === "undefined") {
+        return
+    }
+
+    if (window.location.pathname !== "/login") {
+        window.location.replace("/login")
+    }
+}
+
+export const installAuthRedirectGuard = () => {
+    if (typeof window === "undefined" || window[AUTH_GUARD_FLAG]) {
+        return
+    }
+
+    window[AUTH_GUARD_FLAG] = true
+
+    const originalFetch = window.fetch.bind(window)
+
+    window.fetch = async (...args) => {
+        const response = await originalFetch(...args)
+        const contentType = response.headers.get("content-type") || ""
+
+        if (contentType.includes("application/json")) {
+            const payload = await response.clone().json().catch(() => null)
+            if (isAuthFailureMessage(payload?.message)) {
+                redirectToLogin()
+            }
+        }
+
+        return response
+    }
+}
 
 export const getStoredAuthSession = () => {
     if (typeof window === "undefined") {
