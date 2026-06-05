@@ -28,6 +28,7 @@ function Login() {
         localStorage.removeItem("token")
 
         fetch(`${API_URL}/signout`, {
+            method: "POST",
             credentials: "include"
         }).catch(() => {})
     }, [])
