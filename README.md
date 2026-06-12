@@ -653,7 +653,7 @@ The backend allows local frontend ports and the deployed Vercel frontend domain.
 
 ## License
 
-This project is licensed under the License.
+This project is licensed under the MIT License.
 
 ---
 
